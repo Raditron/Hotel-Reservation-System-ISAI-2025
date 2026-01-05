@@ -57,50 +57,89 @@ WHERE room_number='502');
 -- PASS TESTS (should not error)
 -- ============================================================
 
--- P0: Show seed snapshot
 SELECT 'P0_seed_reservations' AS test_name;
-SELECT reservation_id, notes, reservation_status, check_in_date, check_out_date, total_price, deposit_amount
-FROM Reservations
-WHERE notes LIKE 'SEED_R%'
+SELECT 
+    reservation_id,
+    notes,
+    reservation_status,
+    check_in_date,
+    check_out_date,
+    total_price,
+    deposit_amount
+FROM
+    Reservations
+WHERE
+    notes LIKE 'SEED_R%'
 ORDER BY reservation_id;
 
 -- P1: Deposit matches assigned rooms (your output already showed PASS; keep it here anyway)
 SELECT 'P1_deposit_matches_rooms' AS test_name;
-SELECT r.reservation_id, r.notes,
+SELECT 
+    r.reservation_id,
+    r.notes,
     r.deposit_amount AS stored_deposit,
-    (
-         SELECT IFNULL(SUM(rt.deposit_required),0.00)
-    FROM Reservation_Rooms rr
-        JOIN Rooms rm ON rm.room_id = rr.room_id
-        JOIN Room_Types rt ON rt.room_type_id = rm.room_type_id
-    WHERE rr.reservation_id = r.reservation_id
-       ) AS expected_deposit,
+    (SELECT 
+            IFNULL(SUM(rt.deposit_required), 0.00)
+        FROM
+            Reservation_Rooms rr
+                JOIN
+            Rooms rm ON rm.room_id = rr.room_id
+                JOIN
+            Room_Types rt ON rt.room_type_id = rm.room_type_id
+        WHERE
+            rr.reservation_id = r.reservation_id) AS expected_deposit,
     CASE
-         WHEN r.deposit_amount = (
-           SELECT IFNULL(SUM(rt.deposit_required),0.00)
-    FROM Reservation_Rooms rr
-        JOIN Rooms rm ON rm.room_id = rr.room_id
-        JOIN Room_Types rt ON rt.room_type_id = rm.room_type_id
-    WHERE rr.reservation_id = r.reservation_id
-         ) THEN 'PASS' ELSE 'FAIL'
-       END AS result
-FROM Reservations r
-WHERE r.notes IN ('SEED_R1','SEED_R2','SEED_R3','SEED_R4','SEED_R5')
+        WHEN
+            r.deposit_amount = (SELECT 
+                    IFNULL(SUM(rt.deposit_required), 0.00)
+                FROM
+                    Reservation_Rooms rr
+                        JOIN
+                    Rooms rm ON rm.room_id = rr.room_id
+                        JOIN
+                    Room_Types rt ON rt.room_type_id = rm.room_type_id
+                WHERE
+                    rr.reservation_id = r.reservation_id)
+        THEN
+            'PASS'
+        ELSE 'FAIL'
+    END AS result
+FROM
+    Reservations r
+WHERE
+    r.notes IN ('SEED_R1' , 'SEED_R2',
+        'SEED_R3',
+        'SEED_R4',
+        'SEED_R5')
 ORDER BY r.reservation_id;
 
 -- P2: Payment summary for seeded data (no errors)
 SELECT 'P2_payment_summary' AS test_name;
-SELECT r.notes,
+SELECT 
+    r.notes,
     r.total_price,
     r.deposit_amount,
-    IFNULL(SUM(CASE WHEN p.status='Completed' THEN p.amount END),0) AS completed_paid,
-    GROUP_CONCAT(CONCAT(p.payment_type, ':', p.status, ':', p.amount)
-ORDER BY p.payment_id SEPARATOR ' | ') AS payments
-FROM Reservations r
-LEFT JOIN Payments p ON p.reservation_id = r.reservation_id
-WHERE r.notes IN
-('SEED_R1','SEED_R2','SEED_R3','SEED_R4','SEED_R5')
-GROUP BY r.reservation_id, r.notes, r.total_price, r.deposit_amount
+    IFNULL(SUM(CASE
+                WHEN p.status = 'Completed' THEN p.amount
+            END),
+            0) AS completed_paid,
+    GROUP_CONCAT(CONCAT(p.payment_type,
+                ':',
+                p.status,
+                ':',
+                p.amount)
+        ORDER BY p.payment_id
+        SEPARATOR ' | ') AS payments
+FROM
+    Reservations r
+        LEFT JOIN
+    Payments p ON p.reservation_id = r.reservation_id
+WHERE
+    r.notes IN ('SEED_R1' , 'SEED_R2',
+        'SEED_R3',
+        'SEED_R4',
+        'SEED_R5')
+GROUP BY r.reservation_id , r.notes , r.total_price , r.deposit_amount
 ORDER BY r.reservation_id;
 
 -- P3: Procedure PASS: create reservation that includes today, fully pay, check-in, then check-out
@@ -127,8 +166,7 @@ WHERE rm.current_status IN ('Vacant','Cleaning')
     WHERE rr.room_id = rm.room_id
         AND r.reservation_status IN ('Confirmed','Checked-in')
         AND CURDATE() < r.check_out_date
-        AND DATE_ADD(CURDATE(), INTERVAL
-2 DAY) > r.check_in_date
+        AND DATE_ADD(CURDATE(), INTERVAL 2 DAY) > r.check_in_date
     )
   ORDER BY rm.room_id
   LIMIT 1;
@@ -144,11 +182,8 @@ VALUES
         (SELECT customer_id
         FROM Customers
         ORDER BY customer_id LIMIT 1),
-      CURDATE
-(),
-      DATE_ADD
-(CURDATE
-(), INTERVAL 2 DAY),
+      CURDATE(),
+      DATE_ADD(CURDATE(), INTERVAL 2 DAY),
       1, 180.00, 0, 'Walk-in', 'TEST_TODAY_OK'
     );
 
