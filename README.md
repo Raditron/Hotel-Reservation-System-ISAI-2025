@@ -8,7 +8,7 @@ This project provides a comprehensive database schema for a Hotel Reservation Sy
 
 ## Database Schema
 
-The database `hotel_management_db` consists of the following tables:
+The database `hotel_management_db1` consists of the following tables:
 
 *   **`Roles`**: Stores employee roles and their descriptions (e.g., Manager, Receptionist).
 *   **`Room_Types`**: Defines different types of rooms, including standard price, capacity, and amenities.
@@ -30,9 +30,20 @@ The database `hotel_management_db` consists of the following tables:
 
 ### Triggers
 
-*   **`trg_before_payment_complete`**: Ensures that a payment can only be marked as 'Completed' if the amount matches the total reservation price.
-*   **`trg_reservation_room_overlap_check`**: Prevents double-booking of rooms by checking for overlapping reservation dates before inserting a new `Reservation_Rooms` record.
-*   **`trg_room_type_delete_check`**: Prevents the deletion of a room type if there are still rooms of that type in the `Rooms` table.
+*   **`trg_reservations_before_insert_guardrails`**: Ensures new reservations start with a 'Confirmed' status.
+*   **`trg_res_rooms_after_insert_recalc_deposit`**: Recalculates the deposit amount for a reservation after a new room is added.
+*   **`trg_res_rooms_after_delete_recalc_deposit`**: Recalculates the deposit amount for a reservation after a room is removed.
+*   **`trg_res_rooms_after_update_recalc_deposit`**: Recalculates the deposit amount for a reservation after a room is updated.
+*   **`trg_res_rooms_before_insert`**: Prevents booking a room that is unavailable or already booked for overlapping dates.
+*   **`trg_res_rooms_before_update`**: Prevents updating a reservation to a room that is unavailable or already booked.
+*   **`trg_res_rooms_before_delete`**: Prevents the deletion of a reserved room if a completed payment exists.
+*   **`trg_room_type_delete_check`**: Prevents the deletion of a room type if there are still rooms of that type.
+*   **`trg_reservations_guardrails`**: Enforces rules for updating reservation status and details.
+*   **`trg_res_guests_single_primary_ins`**: Ensures only one primary guest is allowed per reservation on insert.
+*   **`trg_res_guests_single_primary_upd`**: Ensures only one primary guest is allowed per reservation on update.
+*   **`trg_payments_validate_ins`**: Validates payments on insert, ensuring amounts are correct and rules are followed.
+*   **`trg_payments_validate_upd`**: Validates payments on update.
+*   **`trg_payments_block_delete_completed`**: Prevents the deletion of completed payments.
 
 ### Stored Procedures
 
@@ -48,8 +59,8 @@ The database `hotel_management_db` consists of the following tables:
 The typical workflow for a hotel reservation using this database schema is as follows:
 
 1.  **Reservation**: A `Customer` makes a `Reservation`. The reservation details, such as check-in/out dates and number of guests, are stored in the `Reservations` table.
-2.  **Room Assignment**: Specific `Rooms` of a certain `Room_Type` are assigned to the reservation and recorded in the `Reservation_Rooms` table. The `trg_reservation_room_overlap_check` trigger prevents any overlapping bookings for the same room.
-3.  **Payment**: A `Payment` is made for the reservation. The `trg_before_payment_complete` trigger ensures the payment amount is correct before the payment status can be set to 'Completed'.
+2.  **Room Assignment**: Specific `Rooms` of a certain `Room_Type` are assigned to the reservation and recorded in the `Reservation_Rooms` table. The `trg_res_rooms_before_insert` trigger prevents any overlapping bookings for the same room.
+3.  **Payment**: A `Payment` is made for the reservation. The `trg_payments_validate_ins` trigger ensures the payment amount is correct before the payment status can be set to 'Completed'.
 4.  **Check-In**: On the day of arrival, the `PerformRoomCheckIn` stored procedure is executed for each room in the reservation. This updates the `Rooms` status to 'Occupied' and the `Reservations` status to 'Checked-in'.
 5.  **Services**: During their stay, guests can request additional `Services`. These are recorded in the `Reservation_Services` table, and the execution of these services by employees is tracked in the `Service_Executions` table.
 6.  **Check-Out**: Upon departure, the `PerformRoomCheckOut` stored procedure is called for each room. This updates the room status to 'Cleaning' and, once all rooms are checked out, sets the reservation status to 'Checked-out'.
@@ -59,7 +70,7 @@ The typical workflow for a hotel reservation using this database schema is as fo
 To set up and populate the database, follow these steps:
 
 1.  **Create the Database and Schema**:
-    Execute the `create_db.sql` script to create the `hotel_management_db` database and all its tables, triggers, and stored procedures.
+    Execute the `create_db.sql` script to create the `hotel_management_db1` database and all its tables, triggers, and stored procedures.
 
     ```bash
     mysql -u [your_username] -p < create_db.sql
@@ -70,6 +81,13 @@ To set up and populate the database, follow these steps:
 
     ```bash
     mysql -u [your_username] -p < populate_db.sql
+    ```
+
+3.  **Run Unit Tests**:
+    Execute the `unit_tests.sql` script to run a series of tests against the database to verify its integrity and functionality.
+    
+    ```bash
+    mysql -u [your_username] -p < unit_tests.sql
     ```
 
 After completing these steps, the database will be ready for use.
