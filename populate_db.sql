@@ -226,65 +226,49 @@ WHERE type_name='Business Twin';
 INSERT INTO Reservations
     (customer_id, check_in_date, check_out_date, number_of_guests, total_price, pay_at_checkin, booking_source, external_reference, special_requests, notes)
 SELECT c.customer_id, DATE_ADD(CURDATE(), INTERVAL
-10 DAY), DATE_ADD
-(CURDATE
-(), INTERVAL 12 DAY), 1, 300.00, 0, 'Website', NULL, 'High floor', 'SEED_R1'
+10 DAY), DATE_ADD(CURDATE(), INTERVAL 12 DAY), 1, 300.00, 0, 'Website', NULL, 'High floor', 'SEED_R1'
 FROM Customers c WHERE c.email='ivan.petrov@example.com';
 
 INSERT INTO Reservations
     (customer_id, check_in_date, check_out_date, number_of_guests, total_price, pay_at_checkin, booking_source, external_reference, special_requests, notes)
 SELECT c.customer_id, DATE_ADD(CURDATE(), INTERVAL
-13 DAY), DATE_ADD
-(CURDATE
-(), INTERVAL 16 DAY), 2, 500.00, 1, 'Phone', NULL, NULL, 'SEED_R2'
+13 DAY), DATE_ADD(CURDATE(), INTERVAL 16 DAY), 2, 500.00, 1, 'Phone', NULL, NULL, 'SEED_R2'
 FROM Customers c WHERE c.email='maria.georgieva@example.com';
 
 INSERT INTO Reservations
     (customer_id, check_in_date, check_out_date, number_of_guests, total_price, pay_at_checkin, booking_source, external_reference, special_requests, notes)
 SELECT c.customer_id, DATE_ADD(CURDATE(), INTERVAL
-20 DAY), DATE_ADD
-(CURDATE
-(), INTERVAL 23 DAY), 2, 800.00, 0, 'Walk-in', NULL, 'Quiet room', 'SEED_R3'
+20 DAY), DATE_ADD(CURDATE(), INTERVAL 23 DAY), 2, 800.00, 0, 'Walk-in', NULL, 'Quiet room', 'SEED_R3'
 FROM Customers c WHERE c.email='georgi.dimitrov@example.com';
 
 INSERT INTO Reservations
     (customer_id, check_in_date, check_out_date, number_of_guests, total_price, pay_at_checkin, booking_source, external_reference, special_requests, notes)
 SELECT c.customer_id, DATE_ADD(CURDATE(), INTERVAL
-25 DAY), DATE_ADD
-(CURDATE
-(), INTERVAL 27 DAY), 4, 600.00, 0, 'Expedia', 'EXP-7788', NULL, 'SEED_R4'
+25 DAY), DATE_ADD(CURDATE(), INTERVAL 27 DAY), 4, 600.00, 0, 'Expedia', 'EXP-7788', NULL, 'SEED_R4'
 FROM Customers c WHERE c.email='elena.ivanova@example.com';
 
 INSERT INTO Reservations
     (customer_id, check_in_date, check_out_date, number_of_guests, total_price, pay_at_checkin, booking_source, external_reference, special_requests, notes)
 SELECT c.customer_id, DATE_ADD(CURDATE(), INTERVAL
-30 DAY), DATE_ADD
-(CURDATE
-(), INTERVAL 33 DAY), 1, 400.00, 1, 'Booking.com', 'BK-9191', NULL, 'SEED_R5'
+30 DAY), DATE_ADD(CURDATE(), INTERVAL 33 DAY), 1, 400.00, 1, 'Booking.com', 'BK-9191', NULL, 'SEED_R5'
 FROM Customers c WHERE c.email='nikolay.stoyanov@example.com';
 
 INSERT INTO Reservations
     (customer_id, check_in_date, check_out_date, number_of_guests, total_price, pay_at_checkin, booking_source, external_reference, special_requests, notes)
 SELECT c.customer_id, DATE_ADD(CURDATE(), INTERVAL
-35 DAY), DATE_ADD
-(CURDATE
-(), INTERVAL 37 DAY), 2, 450.00, 0, 'Airbnb', 'AB-1212', NULL, 'SEED_R6'
+35 DAY), DATE_ADD(CURDATE(), INTERVAL 37 DAY), 2, 450.00, 0, 'Airbnb', 'AB-1212', NULL, 'SEED_R6'
 FROM Customers c WHERE c.email='teodora.koleva@example.com';
 
 INSERT INTO Reservations
     (customer_id, check_in_date, check_out_date, number_of_guests, total_price, pay_at_checkin, booking_source, external_reference, special_requests, notes)
 SELECT c.customer_id, DATE_ADD(CURDATE(), INTERVAL
-40 DAY), DATE_ADD
-(CURDATE
-(), INTERVAL 42 DAY), 2, 550.00, 0, 'Corporate', 'CORP-33', NULL, 'SEED_R7'
+40 DAY), DATE_ADD(CURDATE(), INTERVAL 42 DAY), 2, 550.00, 0, 'Corporate', 'CORP-33', NULL, 'SEED_R7'
 FROM Customers c WHERE c.email='martin.vasilev@example.com';
 
 INSERT INTO Reservations
     (customer_id, check_in_date, check_out_date, number_of_guests, total_price, pay_at_checkin, booking_source, external_reference, special_requests, notes)
 SELECT c.customer_id, DATE_ADD(CURDATE(), INTERVAL
-45 DAY), DATE_ADD
-(CURDATE
-(), INTERVAL 48 DAY), 3, 900.00, 0, 'Other', NULL, NULL, 'SEED_R8'
+45 DAY), DATE_ADD(CURDATE(), INTERVAL 48 DAY), 3, 900.00, 0, 'Other', NULL, NULL, 'SEED_R8'
 FROM Customers c WHERE c.email='ani.nikolova@example.com';
 
 -- ----------------------
@@ -582,59 +566,82 @@ WHERE notes='SEED_R5';
 -- ----------------------
 -- Counts: every table must be > 5
 -- ----------------------
-    SELECT 'Roles' tbl, COUNT(*) cnt
-    FROM Roles
-UNION ALL
-    SELECT 'Room_Types', COUNT(*)
-    FROM Room_Types
-UNION ALL
-    SELECT 'Customers', COUNT(*)
-    FROM Customers
-UNION ALL
-    SELECT 'Services', COUNT(*)
-    FROM Services
-UNION ALL
-    SELECT 'Employees', COUNT(*)
-    FROM Employees
-UNION ALL
-    SELECT 'Work_Records', COUNT(*)
-    FROM Work_Records
-UNION ALL
-    SELECT 'Employee_Payroll', COUNT(*)
-    FROM Employee_Payroll
-UNION ALL
-    SELECT 'Rooms', COUNT(*)
-    FROM Rooms
-UNION ALL
-    SELECT 'Reservations', COUNT(*)
-    FROM Reservations
-UNION ALL
-    SELECT 'Payments', COUNT(*)
-    FROM Payments
-UNION ALL
-    SELECT 'Reservation_Guests', COUNT(*)
-    FROM Reservation_Guests
-UNION ALL
-    SELECT 'Reservation_Rooms', COUNT(*)
-    FROM Reservation_Rooms
-UNION ALL
-    SELECT 'Reservation_Services', COUNT(*)
-    FROM Reservation_Services
-UNION ALL
-    SELECT 'Employee_Services', COUNT(*)
-    FROM Employee_Services
-UNION ALL
-    SELECT 'Service_Executions', COUNT(*)
-    FROM Service_Executions;
+SELECT 
+    'Roles' tbl, COUNT(*) cnt
+FROM
+    Roles 
+UNION ALL SELECT 
+    'Room_Types', COUNT(*)
+FROM
+    Room_Types 
+UNION ALL SELECT 
+    'Customers', COUNT(*)
+FROM
+    Customers 
+UNION ALL SELECT 
+    'Services', COUNT(*)
+FROM
+    Services 
+UNION ALL SELECT 
+    'Employees', COUNT(*)
+FROM
+    Employees 
+UNION ALL SELECT 
+    'Work_Records', COUNT(*)
+FROM
+    Work_Records 
+UNION ALL SELECT 
+    'Employee_Payroll', COUNT(*)
+FROM
+    Employee_Payroll 
+UNION ALL SELECT 
+    'Rooms', COUNT(*)
+FROM
+    Rooms 
+UNION ALL SELECT 
+    'Reservations', COUNT(*)
+FROM
+    Reservations 
+UNION ALL SELECT 
+    'Payments', COUNT(*)
+FROM
+    Payments 
+UNION ALL SELECT 
+    'Reservation_Guests', COUNT(*)
+FROM
+    Reservation_Guests 
+UNION ALL SELECT 
+    'Reservation_Rooms', COUNT(*)
+FROM
+    Reservation_Rooms 
+UNION ALL SELECT 
+    'Reservation_Services', COUNT(*)
+FROM
+    Reservation_Services 
+UNION ALL SELECT 
+    'Employee_Services', COUNT(*)
+FROM
+    Employee_Services 
+UNION ALL SELECT 
+    'Service_Executions', COUNT(*)
+FROM
+    Service_Executions;
 
 -- Proof deposit trigger works: stored vs computed
-SELECT r.reservation_id, r.notes, r.deposit_amount AS stored_deposit,
-    (
-         SELECT IFNULL(SUM(rt.deposit_required),0.00)
-    FROM Reservation_Rooms rr
-        JOIN Rooms rm ON rm.room_id = rr.room_id
-        JOIN Room_Types rt ON rt.room_type_id = rm.room_type_id
-    WHERE rr.reservation_id = r.reservation_id
-       ) AS expected_deposit
-FROM Reservations r
+SELECT 
+    r.reservation_id,
+    r.notes,
+    r.deposit_amount AS stored_deposit,
+    (SELECT 
+            IFNULL(SUM(rt.deposit_required), 0.00)
+        FROM
+            Reservation_Rooms rr
+                JOIN
+            Rooms rm ON rm.room_id = rr.room_id
+                JOIN
+            Room_Types rt ON rt.room_type_id = rm.room_type_id
+        WHERE
+            rr.reservation_id = r.reservation_id) AS expected_deposit
+FROM
+    Reservations r
 ORDER BY r.reservation_id;
