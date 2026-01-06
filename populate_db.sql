@@ -523,14 +523,12 @@ WHERE r.notes='SEED_R5';
 -- Payments (>=6) obeying your triggers
 -- ----------------------
 
--- R1: deposit=0 => only Completed Final == total_price
 INSERT INTO Payments
     (reservation_id, payment_type, amount, payment_method, status, notes)
 SELECT reservation_id, 'Final', total_price, 'Online', 'Completed', 'Seed full upfront'
 FROM Reservations
 WHERE notes='SEED_R1';
 
--- R2: deposit>0 => Completed Deposit + Completed Final remainder
 INSERT INTO Payments
     (reservation_id, payment_type, amount, payment_method, status, notes)
 SELECT reservation_id, 'Deposit', deposit_amount, 'Cash', 'Completed', 'Seed deposit'
@@ -543,106 +541,20 @@ SELECT reservation_id, 'Final', (total_price - deposit_amount), 'Credit Card', '
 FROM Reservations
 WHERE notes='SEED_R2';
 
--- R3: deposit>0 => Deposit-only completed allowed
 INSERT INTO Payments
     (reservation_id, payment_type, amount, payment_method, status, notes)
 SELECT reservation_id, 'Deposit', deposit_amount, 'Debit Card', 'Completed', 'Seed deposit only'
 FROM Reservations
 WHERE notes='SEED_R3';
 
--- R4: deposit>0 but no deposit completed => full upfront Final Completed allowed
 INSERT INTO Payments
     (reservation_id, payment_type, amount, payment_method, status, notes)
 SELECT reservation_id, 'Final', total_price, 'Bank Transfer', 'Completed', 'Seed full upfront'
 FROM Reservations
 WHERE notes='SEED_R4';
 
--- R5: pending payment (allowed) -> gives 6th payment row
 INSERT INTO Payments
     (reservation_id, payment_type, amount, payment_method, status, notes)
 SELECT reservation_id, 'Final', total_price, 'Online', 'Pending', 'Seed pending'
 FROM Reservations
 WHERE notes='SEED_R5';
-
--- ----------------------
--- Counts: every table must be > 5
--- ----------------------
-SELECT 
-    'Roles' tbl, COUNT(*) cnt
-FROM
-    Roles 
-UNION ALL SELECT 
-    'Room_Types', COUNT(*)
-FROM
-    Room_Types 
-UNION ALL SELECT 
-    'Customers', COUNT(*)
-FROM
-    Customers 
-UNION ALL SELECT 
-    'Services', COUNT(*)
-FROM
-    Services 
-UNION ALL SELECT 
-    'Employees', COUNT(*)
-FROM
-    Employees 
-UNION ALL SELECT 
-    'Work_Records', COUNT(*)
-FROM
-    Work_Records 
-UNION ALL SELECT 
-    'Employee_Payroll', COUNT(*)
-FROM
-    Employee_Payroll 
-UNION ALL SELECT 
-    'Rooms', COUNT(*)
-FROM
-    Rooms 
-UNION ALL SELECT 
-    'Reservations', COUNT(*)
-FROM
-    Reservations 
-UNION ALL SELECT 
-    'Payments', COUNT(*)
-FROM
-    Payments 
-UNION ALL SELECT 
-    'Reservation_Guests', COUNT(*)
-FROM
-    Reservation_Guests 
-UNION ALL SELECT 
-    'Reservation_Rooms', COUNT(*)
-FROM
-    Reservation_Rooms 
-UNION ALL SELECT 
-    'Reservation_Services', COUNT(*)
-FROM
-    Reservation_Services 
-UNION ALL SELECT 
-    'Employee_Services', COUNT(*)
-FROM
-    Employee_Services 
-UNION ALL SELECT 
-    'Service_Executions', COUNT(*)
-FROM
-    Service_Executions;
-
--- Proof deposit trigger works: stored vs computed
-SELECT 
-    r.reservation_id,
-    r.notes,
-    r.deposit_amount AS stored_deposit,
-    (SELECT 
-            IFNULL(SUM(rt.deposit_required), 0.00)
-        FROM
-            Reservation_Rooms rr
-                JOIN
-            Rooms rm ON rm.room_id = rr.room_id
-                JOIN
-            Room_Types rt ON rt.room_type_id = rm.room_type_id
-        WHERE
-            rr.reservation_id = r.reservation_id) AS expected_deposit
-FROM
-    Reservations r
-ORDER BY r.reservation_id;

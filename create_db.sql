@@ -32,14 +32,11 @@ CREATE TABLE Roles (
 CREATE TABLE Room_Types (
     room_type_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     type_name VARCHAR(50) NOT NULL UNIQUE,
-    standard_price DECIMAL(8,2) NOT NULL CHECK (standard_price >= 0),
+    standard_price DECIMAL(8 , 2 ) NOT NULL CHECK (standard_price >= 0),
     capacity TINYINT UNSIGNED NOT NULL CHECK (capacity >= 1 AND capacity <= 10),
     bed_count TINYINT UNSIGNED NOT NULL CHECK (bed_count >= 1 AND bed_count <= 8),
     description TEXT NOT NULL,
-
-    -- Deposit required for this room type (per room)
-    deposit_required DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (deposit_required >= 0),
-
+    deposit_required DECIMAL(10 , 2 ) NOT NULL DEFAULT 0.00 CHECK (deposit_required >= 0),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -85,13 +82,14 @@ CREATE TABLE Employees (
     email VARCHAR(100) NOT NULL UNIQUE,
     role_id INT UNSIGNED NOT NULL,
     hire_date DATE NOT NULL,
-    base_pay_rate DECIMAL(10,2) NOT NULL CHECK (base_pay_rate >= 0),
+    base_pay_rate DECIMAL(10 , 2 ) NOT NULL CHECK (base_pay_rate >= 0),
     status ENUM('Active', 'On Leave', 'Resigned') NOT NULL DEFAULT 'Active',
     deleted_at DATETIME NULL DEFAULT NULL,
     notes TEXT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_employee_role FOREIGN KEY (role_id) REFERENCES Roles(role_id)
+    CONSTRAINT fk_employee_role FOREIGN KEY (role_id)
+        REFERENCES Roles (role_id)
         ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
@@ -100,18 +98,20 @@ CREATE TABLE Work_Records (
     employee_id INT UNSIGNED NOT NULL,
     role_id INT UNSIGNED NOT NULL,
     work_date DATE NOT NULL,
-    hours_worked DECIMAL(5,2) NOT NULL DEFAULT 0.00 CHECK (hours_worked >= 0),
-    overtime_hours DECIMAL(5,2) NOT NULL DEFAULT 0.00 CHECK (overtime_hours >= 0),
+    hours_worked DECIMAL(5 , 2 ) NOT NULL DEFAULT 0.00 CHECK (hours_worked >= 0),
+    overtime_hours DECIMAL(5 , 2 ) NOT NULL DEFAULT 0.00 CHECK (overtime_hours >= 0),
     is_weekend BOOLEAN NOT NULL DEFAULT FALSE,
     is_holiday BOOLEAN NOT NULL DEFAULT FALSE,
     notes TEXT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_work_employee FOREIGN KEY (employee_id) REFERENCES Employees(employee_id)
+    CONSTRAINT fk_work_employee FOREIGN KEY (employee_id)
+        REFERENCES Employees (employee_id)
         ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT fk_work_role FOREIGN KEY (role_id) REFERENCES Roles(role_id)
+    CONSTRAINT fk_work_role FOREIGN KEY (role_id)
+        REFERENCES Roles (role_id)
         ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT unique_work_record UNIQUE (employee_id, role_id, work_date)
+    CONSTRAINT unique_work_record UNIQUE (employee_id , role_id , work_date)
 );
 
 CREATE TABLE Employee_Payroll (
@@ -120,20 +120,22 @@ CREATE TABLE Employee_Payroll (
     role_id INT UNSIGNED NOT NULL,
     pay_period_end_date DATE NOT NULL,
     salary_type ENUM('Hourly', 'Monthly') NOT NULL,
-    base_rate DECIMAL(10,2) NOT NULL CHECK (base_rate >= 0),
-    hours_worked DECIMAL(6,2) NOT NULL DEFAULT 0.00 CHECK (hours_worked >= 0),
-    overtime_hours DECIMAL(5,2) NOT NULL DEFAULT 0.00 CHECK (overtime_hours >= 0),
-    overtime_rate DECIMAL(10,2) NOT NULL CHECK (overtime_rate >= 0),
-    gross_pay DECIMAL(10,2) NOT NULL CHECK (gross_pay >= 0),
-    total_tax_deduction DECIMAL(10,2) NOT NULL CHECK (total_tax_deduction >= 0),
-    net_pay DECIMAL(10,2) NOT NULL,
+    base_rate DECIMAL(10 , 2 ) NOT NULL CHECK (base_rate >= 0),
+    hours_worked DECIMAL(6 , 2 ) NOT NULL DEFAULT 0.00 CHECK (hours_worked >= 0),
+    overtime_hours DECIMAL(5 , 2 ) NOT NULL DEFAULT 0.00 CHECK (overtime_hours >= 0),
+    overtime_rate DECIMAL(10 , 2 ) NOT NULL CHECK (overtime_rate >= 0),
+    gross_pay DECIMAL(10 , 2 ) NOT NULL CHECK (gross_pay >= 0),
+    total_tax_deduction DECIMAL(10 , 2 ) NOT NULL CHECK (total_tax_deduction >= 0),
+    net_pay DECIMAL(10 , 2 ) NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_payroll_employee FOREIGN KEY (employee_id) REFERENCES Employees(employee_id)
+    CONSTRAINT fk_payroll_employee FOREIGN KEY (employee_id)
+        REFERENCES Employees (employee_id)
         ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT fk_payroll_role FOREIGN KEY (role_id) REFERENCES Roles(role_id)
+    CONSTRAINT fk_payroll_role FOREIGN KEY (role_id)
+        REFERENCES Roles (role_id)
         ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT unique_payroll_period UNIQUE (employee_id, pay_period_end_date)
+    CONSTRAINT unique_payroll_period UNIQUE (employee_id , pay_period_end_date)
 );
 
 -- ======================
@@ -144,11 +146,11 @@ CREATE TABLE Rooms (
     room_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     room_number VARCHAR(10) NOT NULL UNIQUE,
     room_type_id INT UNSIGNED NOT NULL,
-    current_status ENUM('Vacant', 'Occupied', 'Cleaning', 'Maintenance', 'Not Available', 'Under Renovation')
-        NOT NULL DEFAULT 'Vacant',
+    current_status ENUM('Vacant', 'Occupied', 'Cleaning', 'Maintenance', 'Not Available', 'Under Renovation') NOT NULL DEFAULT 'Vacant',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_room_type FOREIGN KEY (room_type_id) REFERENCES Room_Types(room_type_id)
+    CONSTRAINT fk_room_type FOREIGN KEY (room_type_id)
+        REFERENCES Room_Types (room_type_id)
         ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
@@ -157,27 +159,20 @@ CREATE TABLE Reservations (
     customer_id INT UNSIGNED NOT NULL,
     check_in_date DATE NOT NULL,
     check_out_date DATE NOT NULL,
-    number_of_guests TINYINT UNSIGNED NOT NULL CHECK (number_of_guests >= 1 AND number_of_guests <= 10),
+    number_of_guests TINYINT UNSIGNED NOT NULL CHECK (number_of_guests >= 1
+        AND number_of_guests <= 10),
     reservation_status ENUM('Confirmed', 'Checked-in', 'Checked-out', 'Cancelled') NOT NULL DEFAULT 'Confirmed',
-
-    -- Must be > 0
-    total_price DECIMAL(10,2) NOT NULL CHECK (total_price > 0),
-
-    -- Whether customer may pay at check-in (still requires FULL payment before check-in)
+    total_price DECIMAL(10 , 2 ) NOT NULL CHECK (total_price > 0),
     pay_at_checkin BOOLEAN NOT NULL DEFAULT FALSE,
-
-    -- Computed from rooms (sum of Room_Types.deposit_required)
-    deposit_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (deposit_amount >= 0),
-
-    booking_source ENUM('Walk-in','Website','Phone','Booking.com','Expedia','Airbnb','Travel Agent','Corporate','Other')
-        NOT NULL DEFAULT 'Walk-in',
+    deposit_amount DECIMAL(10 , 2 ) NOT NULL DEFAULT 0.00 CHECK (deposit_amount >= 0),
+    booking_source ENUM('Walk-in', 'Website', 'Phone', 'Booking.com', 'Expedia', 'Airbnb', 'Travel Agent', 'Corporate', 'Other') NOT NULL DEFAULT 'Walk-in',
     external_reference VARCHAR(50) NULL,
     special_requests TEXT,
     notes TEXT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_reservation_customer FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
+    CONSTRAINT fk_reservation_customer FOREIGN KEY (customer_id)
+        REFERENCES Customers (customer_id)
         ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT chk_dates CHECK (check_out_date > check_in_date),
     CONSTRAINT chk_deposit_not_over_total CHECK (deposit_amount <= total_price)
@@ -190,19 +185,18 @@ CREATE TABLE Reservations (
 CREATE TABLE Payments (
     payment_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     reservation_id INT UNSIGNED NOT NULL,
-    payment_type ENUM('Deposit','Final') NOT NULL DEFAULT 'Final',
-    amount DECIMAL(10,2) NOT NULL CHECK (amount >= 0),
+    payment_type ENUM('Deposit', 'Final') NOT NULL DEFAULT 'Final',
+    amount DECIMAL(10 , 2 ) NOT NULL CHECK (amount >= 0),
     payment_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     payment_method ENUM('Cash', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Online') NOT NULL,
     status ENUM('Pending', 'Completed', 'Cancelled', 'Refunded') NOT NULL DEFAULT 'Pending',
     notes TEXT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_payment_reservation FOREIGN KEY (reservation_id) REFERENCES Reservations(reservation_id)
+    CONSTRAINT fk_payment_reservation FOREIGN KEY (reservation_id)
+        REFERENCES Reservations (reservation_id)
         ON UPDATE CASCADE ON DELETE RESTRICT,
-
-    CONSTRAINT uq_payment_type_per_res UNIQUE (reservation_id, payment_type)
+    CONSTRAINT uq_payment_type_per_res UNIQUE (reservation_id , payment_type)
 );
 
 -- ======================
@@ -215,11 +209,13 @@ CREATE TABLE Reservation_Guests (
     customer_id INT UNSIGNED NOT NULL,
     is_primary_booker BOOLEAN NOT NULL DEFAULT FALSE,
     added_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_resguest_reservation FOREIGN KEY (reservation_id) REFERENCES Reservations(reservation_id)
+    CONSTRAINT fk_resguest_reservation FOREIGN KEY (reservation_id)
+        REFERENCES Reservations (reservation_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT fk_resguest_customer FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
+    CONSTRAINT fk_resguest_customer FOREIGN KEY (customer_id)
+        REFERENCES Customers (customer_id)
         ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT unique_res_guest UNIQUE (reservation_id, customer_id)
+    CONSTRAINT unique_res_guest UNIQUE (reservation_id , customer_id)
 );
 
 CREATE TABLE Reservation_Rooms (
@@ -228,11 +224,13 @@ CREATE TABLE Reservation_Rooms (
     room_id INT UNSIGNED NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_resroom_reservation FOREIGN KEY (reservation_id) REFERENCES Reservations(reservation_id)
+    CONSTRAINT fk_resroom_reservation FOREIGN KEY (reservation_id)
+        REFERENCES Reservations (reservation_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT fk_resroom_room FOREIGN KEY (room_id) REFERENCES Rooms(room_id)
+    CONSTRAINT fk_resroom_room FOREIGN KEY (room_id)
+        REFERENCES Rooms (room_id)
         ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT unique_room_reservation UNIQUE (room_id, reservation_id)
+    CONSTRAINT unique_room_reservation UNIQUE (room_id , reservation_id)
 );
 
 CREATE TABLE Reservation_Services (
@@ -242,11 +240,14 @@ CREATE TABLE Reservation_Services (
     customer_id INT UNSIGNED NULL,
     added_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_resservice_reservation FOREIGN KEY (reservation_id) REFERENCES Reservations(reservation_id)
+    CONSTRAINT fk_resservice_reservation FOREIGN KEY (reservation_id)
+        REFERENCES Reservations (reservation_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT fk_resservice_service FOREIGN KEY (service_id) REFERENCES Services(service_id)
+    CONSTRAINT fk_resservice_service FOREIGN KEY (service_id)
+        REFERENCES Services (service_id)
         ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT fk_resservice_customer FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
+    CONSTRAINT fk_resservice_customer FOREIGN KEY (customer_id)
+        REFERENCES Customers (customer_id)
         ON UPDATE CASCADE ON DELETE SET NULL
 );
 
@@ -257,11 +258,13 @@ CREATE TABLE Employee_Services (
     can_be_scheduled BOOLEAN NOT NULL DEFAULT TRUE,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_empservice_employee FOREIGN KEY (employee_id) REFERENCES Employees(employee_id)
+    CONSTRAINT fk_empservice_employee FOREIGN KEY (employee_id)
+        REFERENCES Employees (employee_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT fk_empservice_service FOREIGN KEY (service_id) REFERENCES Services(service_id)
+    CONSTRAINT fk_empservice_service FOREIGN KEY (service_id)
+        REFERENCES Services (service_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT unique_emp_service UNIQUE (employee_id, service_id)
+    CONSTRAINT unique_emp_service UNIQUE (employee_id , service_id)
 );
 
 CREATE TABLE Service_Executions (
@@ -269,14 +272,17 @@ CREATE TABLE Service_Executions (
     reservation_id INT UNSIGNED NOT NULL,
     service_id INT UNSIGNED NOT NULL,
     employee_id INT UNSIGNED NOT NULL,
-    status ENUM('Scheduled','In Progress','Completed','Cancelled') NOT NULL DEFAULT 'Scheduled',
+    status ENUM('Scheduled', 'In Progress', 'Completed', 'Cancelled') NOT NULL DEFAULT 'Scheduled',
     performed_at DATETIME NULL,
     notes TEXT,
-    CONSTRAINT fk_exec_reservation FOREIGN KEY (reservation_id) REFERENCES Reservations(reservation_id)
+    CONSTRAINT fk_exec_reservation FOREIGN KEY (reservation_id)
+        REFERENCES Reservations (reservation_id)
         ON DELETE CASCADE,
-    CONSTRAINT fk_exec_service FOREIGN KEY (service_id) REFERENCES Services(service_id)
+    CONSTRAINT fk_exec_service FOREIGN KEY (service_id)
+        REFERENCES Services (service_id)
         ON DELETE RESTRICT,
-    CONSTRAINT fk_exec_employee FOREIGN KEY (employee_id) REFERENCES Employees(employee_id)
+    CONSTRAINT fk_exec_employee FOREIGN KEY (employee_id)
+        REFERENCES Employees (employee_id)
         ON DELETE RESTRICT
 );
 
@@ -509,7 +515,6 @@ FOR EACH ROW
 BEGIN
     DECLARE v_paid DECIMAL(10,2);
 
-    /* Status transition rules */
     IF NEW.reservation_status <> OLD.reservation_status THEN
 
         IF OLD.reservation_status = 'Cancelled' THEN
@@ -537,7 +542,6 @@ BEGIN
         END IF;
     END IF;
 
-    /* Freeze key fields after any Completed payment exists */
     IF EXISTS (
         SELECT 1
         FROM Payments
@@ -555,7 +559,6 @@ BEGIN
         END IF;
     END IF;
 
-    /* Enforce full payment before Checked-in */
     IF NEW.reservation_status = 'Checked-in'
        AND OLD.reservation_status <> 'Checked-in' THEN
 
@@ -909,18 +912,29 @@ DELIMITER ;
 DROP VIEW IF EXISTS vw_dashboard_today;
 
 CREATE VIEW vw_dashboard_today AS
-SELECT 'Today''s Arrivals' AS info, COUNT(*) AS total
-FROM Reservations
-WHERE check_in_date = CURDATE() AND reservation_status IN ('Confirmed','Checked-in')
-UNION ALL
-SELECT 'Today''s Departures', COUNT(*)
-FROM Reservations
-WHERE check_out_date = CURDATE() AND reservation_status = 'Checked-in'
-UNION ALL
-SELECT 'Currently Occupied Rooms', COUNT(DISTINCT rr.room_id)
-FROM Reservation_Rooms rr
-JOIN Reservations r ON rr.reservation_id = r.reservation_id
-WHERE CURDATE() >= r.check_in_date AND CURDATE() < r.check_out_date
-  AND r.reservation_status = 'Checked-in';
+    SELECT 
+        'Today\'s Arrivals' AS info, COUNT(*) AS total
+    FROM
+        Reservations
+    WHERE
+        check_in_date = CURDATE()
+            AND reservation_status IN ('Confirmed' , 'Checked-in') 
+    UNION ALL SELECT 
+        'Today\'s Departures', COUNT(*)
+    FROM
+        Reservations
+    WHERE
+        check_out_date = CURDATE()
+            AND reservation_status = 'Checked-in' 
+    UNION ALL SELECT 
+        'Currently Occupied Rooms', COUNT(DISTINCT rr.room_id)
+    FROM
+        Reservation_Rooms rr
+            JOIN
+        Reservations r ON rr.reservation_id = r.reservation_id
+    WHERE
+        CURDATE() >= r.check_in_date
+            AND CURDATE() < r.check_out_date
+            AND r.reservation_status = 'Checked-in';
 
 SELECT 'Hotel Management DB created (deposit + final payments + triggers + procedures)' AS status;
