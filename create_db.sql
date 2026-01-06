@@ -1,3 +1,4 @@
+
 -- ============================================================
 -- Hotel Management DB (MySQL) - Deposit + Final Payments
 -- Rules:
@@ -508,7 +509,9 @@ FOR EACH ROW
 BEGIN
     DECLARE v_paid DECIMAL(10,2);
 
+    /* Status transition rules */
     IF NEW.reservation_status <> OLD.reservation_status THEN
+
         IF OLD.reservation_status = 'Cancelled' THEN
             SIGNAL SQLSTATE '45000'
                 SET MESSAGE_TEXT = 'Cancelled reservations cannot change status.';
@@ -534,6 +537,7 @@ BEGIN
         END IF;
     END IF;
 
+    /* Freeze key fields after any Completed payment exists */
     IF EXISTS (
         SELECT 1
         FROM Payments
@@ -551,6 +555,7 @@ BEGIN
         END IF;
     END IF;
 
+    /* Enforce full payment before Checked-in */
     IF NEW.reservation_status = 'Checked-in'
        AND OLD.reservation_status <> 'Checked-in' THEN
 
@@ -686,6 +691,7 @@ BEGIN
         END IF;
     END IF;
 END//
+
 
 CREATE TRIGGER trg_payments_validate_upd
 BEFORE UPDATE ON Payments

@@ -1,3 +1,4 @@
+
 USE hotel_management_db1;
 
 -- If re-running: clear in FK-safe order (won't touch Completed payments if you have them)
