@@ -33,8 +33,7 @@ Defines the different types of rooms available in the hotel with their standard 
 | capacity | Maximum number of guests (1-10) |
 | bed_count | Number of beds in the room (1-8) |
 | description | Detailed description of the room type |
-| amenities | JSON field storing list of amenities |
-| images | JSON field storing image URLs or paths |
+| deposit_required | Deposit amount required for this room type |
 | created_at | Tracks when the record was created |
 | updated_at | Tracks when the row was last modified |
 
@@ -119,8 +118,9 @@ Main table for booking information and reservation management.
 | check_out_date | Date when guests will check out (must be after check_in_date) |
 | number_of_guests | Total number of guests (1-10) |
 | reservation_status | Status: 'Confirmed', 'Checked-in', 'Checked-out', 'Cancelled' |
-| total_price | Total cost of the reservation (must be ≥ 0) |
+| total_price | Total cost of the reservation (must be > 0) |
 | pay_at_checkin | Indicates if payment is deferred until check-in |
+| deposit_amount | The amount of deposit required for the reservation |
 | booking_source | Source of booking: 'Walk-in', 'Website', 'Phone', 'Booking.com', 'Expedia', 'Airbnb', 'Travel Agent', 'Corporate', 'Other' |
 | external_reference | Reference number from external booking platforms |
 | special_requests | Guest's special requests or preferences |
@@ -135,7 +135,8 @@ Tracks all payment transactions for reservations.
 | Column | Description |
 |--------|-------------|
 | payment_id | Unique identifier for the payment (Primary Key) |
-| reservation_id | References the reservation being paid (Foreign Key → Reservations, unique) |
+| reservation_id | References the reservation being paid (Foreign Key → Reservations) |
+| payment_type | Type of payment: 'Deposit' or 'Final' |
 | amount | Payment amount (must be ≥ 0) |
 | payment_date | Date and time when payment was made |
 | payment_method | Method used: 'Cash', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Online' |
@@ -143,6 +144,8 @@ Tracks all payment transactions for reservations.
 | notes | Additional payment notes |
 | created_at | Tracks when the record was created |
 | updated_at | Tracks when the row was last modified |
+
+**Unique Constraint:** A reservation can have a unique payment type (e.g., one 'Deposit' and one 'Final' payment).
 
 ---
 ### 9. Work_Records
@@ -274,6 +277,7 @@ Tracks the actual execution of services by employees for reservations.
 
 ### Reservation_Rooms Indexes
 - **idx_resroom_room_dates**: Composite index on `(room_id, reservation_id)` - Optimizes room booking lookups
+- **idx_resroom_reservation**: Index on `(reservation_id)` - Optimizes queries that filter by reservation.
 
 ### Employee Indexes
 - **idx_employee_role_status**: Composite index on `(role_id, status)` - Optimizes employee queries by role and employment status
@@ -284,46 +288,46 @@ Tracks the actual execution of services by employees for reservations.
 
 ### Triggers
 
-*   **`trg_before_payment_complete`**: 
-    *   **Type:** BEFORE UPDATE on `Payments`
-    *   **Purpose:** Validates that the payment amount is not less than the total reservation price before marking a payment as 'Completed'.
-*   **`trg_reservation_room_overlap_check`**: 
-    *   **Type:** BEFORE INSERT on `Reservation_Rooms`
-    *   **Purpose:** Prevents double-booking by ensuring a room is not booked for overlapping dates.
-*   **`trg_room_type_delete_check`**: 
-    *   **Type:** BEFORE DELETE on `Room_Types`
-    *   **Purpose:** Prevents deletion of a room type if it is still referenced by existing rooms.
-*   **`trg_reservations_before_insert_guardrails`**: 
+*   **`trg_reservations_before_insert_guardrails`**:
     *   **Type:** BEFORE INSERT on `Reservations`
     *   **Purpose:** Ensures new reservations start with a 'Confirmed' status.
-*   **`trg_res_rooms_after_insert_recalc_deposit`**: 
+*   **`trg_res_rooms_after_insert_recalc_deposit`**:
     *   **Type:** AFTER INSERT on `Reservation_Rooms`
     *   **Purpose:** Recalculates the deposit amount for a reservation after a new room is added.
-*   **`trg_res_rooms_after_delete_recalc_deposit`**: 
+*   **`trg_res_rooms_after_delete_recalc_deposit`**:
     *   **Type:** AFTER DELETE on `Reservation_Rooms`
     *   **Purpose:** Recalculates the deposit amount for a reservation after a room is removed.
-*   **`trg_res_rooms_after_update_recalc_deposit`**: 
+*   **`trg_res_rooms_after_update_recalc_deposit`**:
     *   **Type:** AFTER UPDATE on `Reservation_Rooms`
     *   **Purpose:** Recalculates the deposit amount for a reservation after a room is updated.
-*   **`trg_res_rooms_before_delete`**: 
+*   **`trg_res_rooms_before_insert`**:
+    *   **Type:** BEFORE INSERT on `Reservation_Rooms`
+    *   **Purpose:** Prevents booking rooms that are unavailable or already booked for overlapping dates. Also prevents modification after a completed payment exists.
+*   **`trg_res_rooms_before_update`**:
+    *   **Type:** BEFORE UPDATE on `Reservation_Rooms`
+    *   **Purpose:** Prevents updating room reservations to create booking conflicts or after a completed payment exists.
+*   **`trg_res_rooms_before_delete`**:
     *   **Type:** BEFORE DELETE on `Reservation_Rooms`
     *   **Purpose:** Prevents the deletion of a reserved room if a completed payment exists.
-*   **`trg_reservations_guardrails`**: 
+*   **`trg_room_type_delete_check`**:
+    *   **Type:** BEFORE DELETE on `Room_Types`
+    *   **Purpose:** Prevents deletion of a room type if it is still referenced by existing rooms.
+*   **`trg_reservations_guardrails`**:
     *   **Type:** BEFORE UPDATE on `Reservations`
-    *   **Purpose:** Enforces rules for updating reservation status and details.
-*   **`trg_res_guests_single_primary_ins`**: 
+    *   **Purpose:** Enforces rules for updating reservation status and details, preventing changes after payments are made and ensuring full payment before check-in.
+*   **`trg_res_guests_single_primary_ins`**:
     *   **Type:** BEFORE INSERT on `Reservation_Guests`
     *   **Purpose:** Ensures only one primary guest is allowed per reservation.
-*   **`trg_res_guests_single_primary_upd`**: 
+*   **`trg_res_guests_single_primary_upd`**:
     *   **Type:** BEFORE UPDATE on `Reservation_Guests`
     *   **Purpose:** Ensures only one primary guest is allowed per reservation.
-*   **`trg_payments_validate_ins`**: 
+*   **`trg_payments_validate_ins`**:
     *   **Type:** BEFORE INSERT on `Payments`
-    *   **Purpose:** Validates payments on insert, ensuring amounts are correct.
-*   **`trg_payments_validate_upd`**: 
+    *   **Purpose:** Validates payments on insert, ensuring amounts are correct and follow deposit/final payment rules.
+*   **`trg_payments_validate_upd`**:
     *   **Type:** BEFORE UPDATE on `Payments`
-    *   **Purpose:** Validates payments on update.
-*   **`trg_payments_block_delete_completed`**: 
+    *   **Purpose:** Validates payments on update and prevents modification of completed payments.
+*   **`trg_payments_block_delete_completed`**:
     *   **Type:** BEFORE DELETE on `Payments`
     *   **Purpose:** Prevents the deletion of completed payments.
 
@@ -341,8 +345,8 @@ Tracks the actual execution of services by employees for reservations.
 The typical workflow for a hotel reservation using this database schema is as follows:
 
 1.  **Reservation**: A `Customer` makes a `Reservation`. The reservation details, such as check-in/out dates and number of guests, are stored in the `Reservations` table.
-2.  **Room Assignment**: Specific `Rooms` of a certain `Room_Type` are assigned to the reservation and recorded in the `Reservation_Rooms` table. The `trg_reservation_room_overlap_check` trigger prevents any overlapping bookings for the same room.
-3.  **Payment**: A `Payment` is made for the reservation. The `trg_before_payment_complete` trigger ensures the payment amount is correct before the payment status can be set to 'Completed'.
+2.  **Room Assignment**: Specific `Rooms` of a certain `Room_Type` are assigned to the reservation and recorded in the `Reservation_Rooms` table. The `trg_res_rooms_before_insert` trigger prevents any overlapping bookings for the same room.
+3.  **Payment**: A `Payment` is made for the reservation. The `trg_payments_validate_ins` trigger ensures the payment amount is correct before the payment status can be set to 'Completed'.
 4.  **Check-In**: On the day of arrival, the `PerformRoomCheckIn` stored procedure is executed for each room in the reservation. This updates the `Rooms` status to 'Occupied' and the `Reservations` status to 'Checked-in'.
 5.  **Services**: During their stay, guests can request additional `Services`. These are recorded in the `Reservation_Services` table, and the execution of these services by employees is tracked in the `Service_Executions` table.
 6.  **Check-Out**: Upon departure, the `PerformRoomCheckOut` stored procedure is called for each room. This updates the room status to 'Cleaning' and, once all rooms are checked out, sets the reservation status to 'Checked-out'.
